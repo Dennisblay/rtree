@@ -47,3 +47,7 @@ func (r *Rectangle) Extend(other *Rectangle) {
 	r.maxX = math.Max(r.maxX, other.maxX)
 	r.maxY = math.Max(r.maxY, other.maxY)
 }
+
+func (r *Rectangle) Equals(other *Rectangle) bool {
+	return r.minX == other.minX && r.minY == other.minY && r.maxX == other.maxX && r.maxY == other.maxY
+}

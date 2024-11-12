@@ -3,12 +3,14 @@ package rtree
 
 import "testing"
 
+const ()
+
 func TestNewRectangle(t *testing.T) {
 	newRect, err := NewRectangle(1, 2, 3, 4)
 	if err != nil {
 		t.Error(err)
 	}
-	if newRect.xMin != 1 || newRect.yMin != 2 || newRect.xMax != 3 || newRect.yMax != 4 {
+	if newRect.minX != 1 || newRect.minY != 2 || newRect.maxX != 3 || newRect.maxY != 4 {
 		t.Errorf("Rectangle coordinates are not correct, got: %+v", newRect)
 	}
 }
@@ -62,11 +64,70 @@ func TestRectangleContains(t *testing.T) {
 		{rect1: D, rect2: E, expected: false},
 	}
 
-	for _, test := range testCases {
-		result := test.rect1.Contains(test.rect2)
-		if result != test.expected {
-			t.Errorf("Expected %v.Contains(%v) to be %v, but got %v", test.rect1, test.rect2, test.expected, result)
+	for _, tc := range testCases {
+		result := tc.rect1.Contains(tc.rect2)
+		if result != tc.expected {
+			t.Errorf("Expected %v.Contains(%v) to be %v, but got %v", tc.rect1, tc.rect2, tc.expected, result)
 		}
 	}
 
+}
+
+func TestRectangleArea(t *testing.T) {
+	A, _ := NewRectangle(1, 1, 4, 4)
+	B, _ := NewRectangle(2, 2, 5, 5)
+	C, _ := NewRectangle(6, 6, 8, 8)
+	D, _ := NewRectangle(3, 3, 7, 7)
+	E, _ := NewRectangle(10, 10, 12, 12)
+
+	testCases := []struct {
+		rect         *Rectangle
+		expectedArea float64
+	}{
+		{rect: A, expectedArea: 9},
+		{rect: B, expectedArea: 9},
+		{rect: C, expectedArea: 4},
+		{rect: D, expectedArea: 16},
+		{rect: E, expectedArea: 4},
+	}
+
+	for _, tc := range testCases {
+		result := tc.rect.Area()
+		if result != tc.expectedArea {
+			t.Errorf("Expected Area of rectangle: %+v, to be: %v, but got: %v", tc.rect, tc.expectedArea, result)
+		}
+	}
+}
+
+func TestExtendRectangle(t *testing.T) {
+	// Define rectangles for test cases
+	A, _ := NewRectangle(1, 1, 4, 4)
+	B, _ := NewRectangle(2, 2, 5, 5)
+	C, _ := NewRectangle(6, 6, 8, 8)
+	D, _ := NewRectangle(3, 3, 7, 7)
+	E, _ := NewRectangle(10, 10, 12, 12)
+	F, _ := NewRectangle(5, 5, 20, 20)
+
+	// Define test cases with clear expected results
+	testCases := []struct {
+		rect1, rect2 *Rectangle
+		expected     *Rectangle
+	}{
+		{rect1: A, rect2: B, expected: &Rectangle{1, 1, 5, 5}},
+		{rect1: C, rect2: D, expected: &Rectangle{3, 3, 8, 8}},
+		{rect1: E, rect2: F, expected: &Rectangle{5, 5, 20, 20}},
+	}
+
+	for _, tc := range testCases {
+		// Make a copy of rect1 to avoid in-place mutation affecting later tests
+		rect1Copy := *tc.rect1
+
+		// Extend rect1 by rect2
+		rect1Copy.Extend(tc.rect2)
+
+		// Check if the result matches the expected rectangle
+		if !rect1Copy.Equals(tc.expected) {
+			t.Errorf("Extend test failed for rect1: %v, rect2: %v. Expected: %v, got: %v", tc.rect1, tc.rect2, tc.expected, rect1Copy)
+		}
+	}
 }
