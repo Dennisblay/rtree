@@ -12,12 +12,12 @@ type Rectangle struct {
 
 func (r *Rectangle) Overlaps(other *Rectangle) bool {
 	// If rectangle is on right of the right edge of other rectangle
-	// if r.xMin > other.xMax || other.xMin > r.xMax {
+	// if r.minX > other.maxX || other.minX > r.maxX {
 	// 	return false
 	// }
 	//
 	// // If rectangle is on top of top edge of other rectangle
-	// if r.yMin > other.yMax || other.yMin > r.yMax {
+	// if r.minY > other.maxY || other.minY > r.maxY {
 	// 	return false
 	// }
 	// return true

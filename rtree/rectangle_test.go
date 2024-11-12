@@ -3,8 +3,6 @@ package rtree
 
 import "testing"
 
-const ()
-
 func TestNewRectangle(t *testing.T) {
 	newRect, err := NewRectangle(1, 2, 3, 4)
 	if err != nil {
@@ -96,6 +94,28 @@ func TestRectangleArea(t *testing.T) {
 		if result != tc.expectedArea {
 			t.Errorf("Expected Area of rectangle: %+v, to be: %v, but got: %v", tc.rect, tc.expectedArea, result)
 		}
+	}
+}
+
+func TestRectangleEquals(t *testing.T) {
+	A, _ := NewRectangle(1, 1, 4, 4)
+	B, _ := NewRectangle(2, 2, 5, 5)
+	C, _ := NewRectangle(6, 6, 8, 8)
+
+	if A.Equals(A) != true {
+		t.Errorf("Equals test failed for rect: %v Equals: %v, Expected: %v, but got: %v", A, A, true, false)
+	}
+
+	if B.Equals(B) != true {
+		t.Errorf("Equals test failed for rect: %v Equals: %v, Expected: %v, but got: %v", B, B, true, false)
+	}
+
+	if A.Equals(B) != false {
+		t.Errorf("Equals test failed for rect: %v Equals: %v, Expected: %v, but got: %v", A, B, false, true)
+	}
+
+	if C.Equals(B) != false {
+		t.Errorf("Equals test failed for rect: %v Equals: %v, Expected: %v, but got: %v", C, B, false, true)
 	}
 }
 
