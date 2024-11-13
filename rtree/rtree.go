@@ -13,6 +13,10 @@ type Node struct {
 	parent   *Node
 }
 
+func (n *Node) ResizeBBox(r *Rectangle) {
+	n.bbox.Extend(r)
+}
+
 // RTree
 type RTree struct {
 	root       *Node
@@ -23,6 +27,7 @@ func (rtree *RTree) Insert(r *Rectangle) {
 	leaf := rtree.chooseSubtree(r)
 
 	leaf.entries = append(leaf.entries, r)
+	leaf.ResizeBBox(r)
 
 	if len(leaf.entries) > rtree.maxEntries {
 		rtree.splitNode(leaf)
@@ -31,13 +36,46 @@ func (rtree *RTree) Insert(r *Rectangle) {
 	rtree.adjustTree(leaf)
 }
 
-func (rtree *RTree) splitNode(leaf *Node) {
+func (rtree *RTree) splitNode(node *Node) {
+	firstSeed, secondSeed := rtree.chooseSplitSeeds(node)
+
+	// isLeaf   bool
+	// bbox     *Rectangle
+	// children []*Node
+	// entries  []*Rectangle
+	// parent   *Node
+
+	node1 := &Node{
+		isLeaf:   node.isLeaf,
+		children: nil,
+		entries:  []*Rectangle{firstSeed},
+	}
+
+	node2 := &Node{
+		isLeaf:   node.isLeaf,
+		children: nil,
+		entries:  []*Rectangle{secondSeed},
+	}
+
+	node1.ResizeBBox(firstSeed)
+	node2.ResizeBBox(secondSeed)
+
+	// Distribute the remaining entries to the two nodes
+	for _, entry := range node.entries {
+		if entry != firstSeed || entry != secondSeed {
+			enlargement1, enlargement2 := bboxEnlargementArea(node1.bbox, entry), bboxEnlargementArea(node2.bbox, entry)
+			if enlargement1 < enlargement2 {
+				node1.entries = append(node1.entries, entry)
+			} else {
+				node1.entries = append(node1.entries, entry)
+			}
+		}
+	}
 
 }
 
 func (rtree *RTree) chooseSplitSeeds(leaf *Node) (*Rectangle, *Rectangle) {
-	var firstSeed *Rectangle
-	var secondSeed *Rectangle
+	var firstSeed, secondSeed *Rectangle
 	var maxDistance float64
 
 	// Find two nodes that are farthest apart
