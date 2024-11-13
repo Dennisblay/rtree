@@ -6,29 +6,60 @@ import (
 
 // RtreeNode
 type Node struct {
-	isLeaf     bool
-	bbox       *Rectangle
-	children   []*Node
-	entries    []*Rectangle
-	parent     *Node
-	maxEntries int // Maximum node capacity
+	isLeaf   bool
+	bbox     *Rectangle
+	children []*Node
+	entries  []*Rectangle
+	parent   *Node
 }
 
 // RTree
 type RTree struct {
-	root     *Node
-	maxChild int
+	root       *Node
+	maxEntries int // Maximum node capacity
 }
 
 func (rtree *RTree) Insert(r *Rectangle) {
+	leaf := rtree.chooseSubtree(r)
+
+	leaf.entries = append(leaf.entries, r)
+
+	if len(leaf.entries) > rtree.maxEntries {
+		rtree.splitNode(leaf)
+	}
+
+	rtree.adjustTree(leaf)
+}
+
+func (rtree *RTree) splitNode(leaf *Node) {
+
+}
+
+func (rtree *RTree) chooseSplitSeeds(leaf *Node) (*Rectangle, *Rectangle) {
+	var firstSeed *Rectangle
+	var secondSeed *Rectangle
+	var maxDistance float64
+
+	// Find two nodes that are farthest apart
+	for i := 0; i < len(leaf.entries); i++ {
+		for j := i + 1; j < len(leaf.entries); j++ {
+			distance := leaf.entries[i].Distance(leaf.entries[j])
+			if distance < maxDistance {
+				maxDistance = distance
+				firstSeed = leaf.entries[i]
+				secondSeed = leaf.entries[j]
+			}
+		}
+	}
+	return firstSeed, secondSeed
+}
+
+func (rtree *RTree) adjustTree(leaf *Node) {
 
 }
 
 // chooseSubtree traverses the RTree from root to an appropriate leaf node for insertion.
 func (rtree *RTree) chooseSubtree(rect *Rectangle) *Node {
-	if rtree.root == nil {
-		return nil // Optionally, return an error here or handle this case in the calling function.
-	}
 	current := rtree.root
 
 	// Traverse until reaching a leaf node
@@ -40,7 +71,7 @@ func (rtree *RTree) chooseSubtree(rect *Rectangle) *Node {
 		for _, child := range current.children {
 			enlargement := bboxEnlargementArea(child.bbox, rect)
 
-			// Choose the smallest enlargement; if tied, pick the node with the larger area
+			// Choose the smallest enlargement; if tied, pick the node with the smaller area
 			if enlargement < minEnlargementArea || (enlargement == minEnlargementArea && child.bbox.Area() < bestChild.bbox.Area()) {
 				minEnlargementArea = enlargement
 				bestChild = child
@@ -53,7 +84,7 @@ func (rtree *RTree) chooseSubtree(rect *Rectangle) *Node {
 }
 
 // NewRTree initializes an RTree with a specified maximum number of child nodes per node.
-func NewRTree(maxChild int) *RTree {
+func NewRTree(maxEntries int) *RTree {
 	return &RTree{
 		root: &Node{
 			isLeaf:   true,
@@ -61,7 +92,7 @@ func NewRTree(maxChild int) *RTree {
 			children: nil,
 			entries:  []*Rectangle{},
 		},
-		maxChild: maxChild,
+		maxEntries: maxEntries,
 	}
 }
 

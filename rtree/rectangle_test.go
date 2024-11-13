@@ -1,7 +1,10 @@
 // rectangle_test.go
 package rtree
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 func TestNewRectangle(t *testing.T) {
 	newRect, err := NewRectangle(1, 2, 3, 4)
@@ -120,7 +123,6 @@ func TestRectangleEquals(t *testing.T) {
 }
 
 func TestExtendRectangle(t *testing.T) {
-	// Define rectangles for test cases
 	A, _ := NewRectangle(1, 1, 4, 4)
 	B, _ := NewRectangle(2, 2, 5, 5)
 	C, _ := NewRectangle(6, 6, 8, 8)
@@ -128,7 +130,6 @@ func TestExtendRectangle(t *testing.T) {
 	E, _ := NewRectangle(10, 10, 12, 12)
 	F, _ := NewRectangle(5, 5, 20, 20)
 
-	// Define test cases with clear expected results
 	testCases := []struct {
 		rect1, rect2 *Rectangle
 		expected     *Rectangle
@@ -148,6 +149,60 @@ func TestExtendRectangle(t *testing.T) {
 		// Check if the result matches the expected rectangle
 		if !rect1Copy.Equals(tc.expected) {
 			t.Errorf("Extend test failed for rect1: %v, rect2: %v. Expected: %v, got: %v", tc.rect1, tc.rect2, tc.expected, rect1Copy)
+		}
+	}
+}
+
+func TestRectangleCentroid(t *testing.T) {
+	A, _ := NewRectangle(1, 1, 4, 4)
+	B, _ := NewRectangle(2, 2, 5, 5)
+	C, _ := NewRectangle(6, 6, 8, 8)
+	D, _ := NewRectangle(3, 3, 7, 7)
+	E, _ := NewRectangle(10, 10, 12, 12)
+	F, _ := NewRectangle(5, 5, 20, 20)
+
+	testCases := []struct {
+		rect                 *Rectangle
+		expectedX, expectedY float64
+	}{
+		{A, 2.5, 2.5},
+		{B, 3.5, 3.5},
+		{C, 7.0, 7.0},
+		{D, 5.0, 5.0},
+		{E, 11.0, 11.0},
+		{F, 12.5, 12.5},
+	}
+
+	for _, tc := range testCases {
+		resultX, resultY := tc.rect.Centroid()
+		if resultX != tc.expectedX || resultY != tc.expectedY {
+			t.Errorf("Centroid test failed for rectangle %v: got (%v, %v), want (%v, %v)",
+				tc.rect, resultX, resultY, tc.expectedX, tc.expectedY)
+		}
+	}
+}
+
+func TestRectangleDistance(t *testing.T) {
+	A, _ := NewRectangle(1, 1, 4, 4)
+	B, _ := NewRectangle(2, 2, 5, 5)
+	C, _ := NewRectangle(6, 6, 8, 8)
+	D, _ := NewRectangle(3, 3, 7, 7)
+
+	testCases := []struct {
+		rect1, rect2 *Rectangle
+		expected     float64
+	}{
+		{A, B, 1.41},
+		{A, C, 6.36},
+		{A, D, 3.54},
+		{B, C, 4.95},
+		{C, A, 6.36},
+	}
+
+	for _, tc := range testCases {
+		result := tc.rect1.Distance(tc.rect2)
+		if math.Abs(result-tc.expected) > 0.01 {
+			t.Errorf("Testing Rectangle distance failed; Expected Distance from Rect %v and Rect %v to be: %v, but got: %v", tc.rect1, tc.rect2, tc.expected, result)
 		}
 	}
 }

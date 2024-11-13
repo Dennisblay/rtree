@@ -37,10 +37,25 @@ func NewRectangle(coords ...float64) (*Rectangle, error) {
 	return &Rectangle{minX: coords[0], minY: coords[1], maxX: coords[2], maxY: coords[3]}, nil
 }
 
+// Centroid Computes the centroid of a Rectangle
+func (r *Rectangle) Centroid() (float64, float64) {
+	return r.minX + (r.maxX-r.minX)/2, r.minY + (r.maxY-r.minY)/2
+}
+
+// Distance computes euclidean distance between centers of two rectangles
+func (r *Rectangle) Distance(other *Rectangle) float64 {
+	centerX1, centerY1 := r.Centroid()
+	centerX2, centerY2 := other.Centroid()
+	return math.Sqrt(math.Pow((centerX2-centerX1), 2) + math.Pow((centerY2-centerY1), 2))
+
+}
+
+// Area returns the Area of a Rectangle
 func (r *Rectangle) Area() float64 {
 	return (r.maxX - r.minX) * (r.maxY - r.minY)
 }
 
+// Extend extends the bounding box of a rectangle with another rectangle in place
 func (r *Rectangle) Extend(other *Rectangle) {
 	r.minX = math.Min(r.minX, other.minX)
 	r.minY = math.Min(r.minY, other.minY)
@@ -48,6 +63,7 @@ func (r *Rectangle) Extend(other *Rectangle) {
 	r.maxY = math.Max(r.maxY, other.maxY)
 }
 
+// Equals checks for equality with another rectangle
 func (r *Rectangle) Equals(other *Rectangle) bool {
 	return r.minX == other.minX && r.minY == other.minY && r.maxX == other.maxX && r.maxY == other.maxY
 }
