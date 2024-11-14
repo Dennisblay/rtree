@@ -46,7 +46,7 @@ func (r *Rectangle) Centroid() (float64, float64) {
 func (r *Rectangle) Distance(other *Rectangle) float64 {
 	centerX1, centerY1 := r.Centroid()
 	centerX2, centerY2 := other.Centroid()
-	return math.Sqrt(math.Pow((centerX2-centerX1), 2) + math.Pow((centerY2-centerY1), 2))
+	return math.Sqrt((centerX2-centerX1)*(centerX2-centerX1) + (centerY2-centerY1)*(centerY2-centerY1))
 
 }
 
@@ -61,6 +61,15 @@ func (r *Rectangle) Extend(other *Rectangle) {
 	r.minY = math.Min(r.minY, other.minY)
 	r.maxX = math.Max(r.maxX, other.maxX)
 	r.maxY = math.Max(r.maxY, other.maxY)
+}
+
+func (r Rectangle) Union(other *Rectangle) *Rectangle {
+	return &Rectangle{
+		minX: math.Min(r.minX, other.minX),
+		minY: math.Min(r.minY, other.minY),
+		maxX: math.Max(r.maxX, other.maxX),
+		maxY: math.Max(r.maxY, other.maxY),
+	}
 }
 
 // Equals checks for equality with another rectangle
