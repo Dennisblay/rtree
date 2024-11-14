@@ -24,17 +24,22 @@ type BBox interface {
 	Distance(other *Rectangle) float64
 }
 
-func (n *Node) ResizeBBox(r *Rectangle) {
+func (n *Node) ResizeBBox(r BBox) {
 	if n.bbox == nil {
 		n.bbox = r
 	} else {
-		n.bbox.Extend(r)
+		n.bbox.Extend(r.(*Rectangle))
 	}
 }
 
 func (n *Node) PushEntry(r *Rectangle) {
 	n.entries = append(n.entries, r)
 	n.ResizeBBox(r)
+}
+
+func (n *Node) PushChild(node *Node) {
+	n.children = append(n.children, node)
+	n.ResizeBBox(node.bbox)
 }
 
 // RTree
@@ -46,17 +51,12 @@ type RTree struct {
 func (rtree *RTree) Insert(r *Rectangle) {
 	leaf := rtree.chooseSubtree(r)
 
-	leaf.entries = append(leaf.entries, r)
-	leaf.ResizeBBox(r)
-
-	if len(leaf.entries) > rtree.maxEntries {
-		rtree.splitNode(leaf)
-	}
+	leaf.PushEntry(r)
 
 	rtree.adjustTree(leaf)
 }
 
-func (rtree *RTree) splitNode(node *Node) {
+func (rtree *RTree) splitNode(node *Node) (*Node, *Node) {
 	firstSeed, secondSeed := rtree.chooseSplitSeeds(node)
 
 	node1 := &Node{
@@ -77,10 +77,9 @@ func (rtree *RTree) splitNode(node *Node) {
 
 	// Distribute the remaining entries to the two nodes
 	for _, entry := range node.entries {
-		if entry != firstSeed || entry != secondSeed {
+		if entry != firstSeed && entry != secondSeed {
 			enlargement1, _ := bboxEnlargementArea(node1.bbox, entry)
 			enlargement2, _ := bboxEnlargementArea(node2.bbox, entry)
-
 			if enlargement1 < enlargement2 {
 				node1.PushEntry(entry)
 			} else {
@@ -88,6 +87,7 @@ func (rtree *RTree) splitNode(node *Node) {
 			}
 		}
 	}
+	return node1, node2
 
 }
 
@@ -109,7 +109,22 @@ func (rtree *RTree) chooseSplitSeeds(leaf *Node) (*Rectangle, *Rectangle) {
 	return firstSeed, secondSeed
 }
 
-func (rtree *RTree) adjustTree(leaf *Node) {
+func (rtree *RTree) adjustTree(node *Node) {
+
+	if len(node.entries) > rtree.maxEntries {
+		rtree.splitNode(node)
+	}
+
+	if node.parent == nil {
+		newRoot := &Node{
+			isLeaf:   false,
+			bbox:     nil,
+			children: []*Node{},
+			entries:  []*Rectangle{},
+		}
+
+		newRoot.PushChild(node)
+	}
 
 }
 
